@@ -11,6 +11,8 @@ import {
   HttpStatus,
   Req,
   Logger,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -18,6 +20,7 @@ import { CreateBookDto } from './dto/create-book.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -64,6 +67,28 @@ export class BooksController {
 
   @Get()
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all books' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get all books',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @HttpCode(HttpStatus.OK)
+  @ApiQuery({ name: 'limit', type: 'number', example: 30, required: false })
+  @ApiQuery({ name: 'offset', type: 'number', example: 0, required: false })
+  async findAllBooks(
+    @Query('limit', ParseIntPipe) limit = 30,
+    @Query('offset', ParseIntPipe) offset = 0,
+  ) {
+    this.logger.log('getting all books request');
+    return this.booksService.findAllBooks({
+      limit,
+      offset,
+    });
+  }
+
+  @Get('user')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'get assigned books for user' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -72,8 +97,7 @@ export class BooksController {
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @HttpCode(HttpStatus.OK)
   findAllBooksForUser(@Req() req: RequestWithUser) {
-    console.log('Method findAllBooksForUser called');
-    this.logger.log(`getting all books, request: ${req}`);
+    this.logger.log(`getting all books for user, request: ${req}`);
     const userId = req.user.id;
     return this.booksService.findAllBooksForUser(userId);
   }

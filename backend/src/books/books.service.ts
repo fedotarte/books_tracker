@@ -3,6 +3,7 @@ import { AssignBookDto } from './dto/assign-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookDto } from './dto/create-book.dto';
+import { IGetBooksParams } from './books.types';
 
 @Injectable()
 export class BooksService {
@@ -102,6 +103,28 @@ export class BooksService {
       return book;
     } catch (updatingBookError) {
       this.logger.error({ updatingBookError });
+    }
+  }
+
+  async findAllBooks({ limit = 10, offset = 0 }: IGetBooksParams) {
+    this.logger.log(`Get all books`);
+    try {
+      const foundBooks = await this.prismaService.book.findMany({
+        take: limit,
+        skip: offset,
+        include: {
+          bookAuthor: {
+            include: {
+              author: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      this.logger.log({ foundBooks });
+      return foundBooks;
+    } catch (findAllBooksError) {
+      this.logger.error({ findAllBooksError });
     }
   }
 
