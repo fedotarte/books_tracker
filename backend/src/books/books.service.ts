@@ -112,8 +112,16 @@ export class BooksService {
       const foundBooks = await this.prismaService.book.findMany({
         take: limit,
         skip: offset,
+        include: {
+          bookAuthor: {
+            include: {
+              author: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
       });
-
+      this.logger.log({ foundBooks });
       return foundBooks;
     } catch (findAllBooksError) {
       this.logger.error({ findAllBooksError });

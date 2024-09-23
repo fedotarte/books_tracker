@@ -12,6 +12,7 @@ import {
   Req,
   Logger,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -73,14 +74,17 @@ export class BooksController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @HttpCode(HttpStatus.OK)
-  @ApiQuery({ name: 'limit', type: 'number', example: 30 })
-  @ApiQuery({ name: 'offset', type: 'number', example: 0 })
+  @ApiQuery({ name: 'limit', type: 'number', example: 30, required: false })
+  @ApiQuery({ name: 'offset', type: 'number', example: 0, required: false })
   async findAllBooks(
-    @Query('limit') limit: number,
-    @Query('offset') offset: number,
+    @Query('limit', ParseIntPipe) limit = 30,
+    @Query('offset', ParseIntPipe) offset = 0,
   ) {
     this.logger.log('getting all books request');
-    return this.booksService.findAllBooks({ limit, offset });
+    return this.booksService.findAllBooks({
+      limit,
+      offset,
+    });
   }
 
   @Get('user')
