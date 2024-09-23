@@ -11,13 +11,21 @@ export class UsersService {
   async create(data: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    return this.prismaService.user.create({
-      data: {
-        email: data.email,
-        nickname: data.nickname,
-        password: hashedPassword,
-      },
-    });
+    try {
+      const createdUser = await this.prismaService.user.create({
+        data: {
+          email: data.email,
+          nickname: data.nickname,
+          password: hashedPassword,
+        },
+      });
+
+      const { password, ...rest } = createdUser;
+
+      return rest;
+    } catch (userCreationError) {
+      this.logger.error(userCreationError);
+    }
   }
 
   async findByEmail(email: string) {
